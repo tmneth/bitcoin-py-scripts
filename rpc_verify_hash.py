@@ -2,12 +2,10 @@
 
 from bitcoin.rpc import RawProxy
 from binascii import unhexlify, hexlify
-import hashlib
-import struct
-import sys
+import hashlib, struct, sys, re
 
 p = RawProxy()
-block = p.getblock(sys.argv[1])
+
 
 def calcLittleEndian(num):
     return hexlify(struct.Struct('<L').pack(num))
@@ -15,7 +13,7 @@ def calcLittleEndian(num):
 def hashToHex(string):
     return hexlify(bytes.fromhex(string)[::-1])
 
-def concatHash():
+def concatHash(block):
     prevhash = hashToHex(block["previousblockhash"])
     merkle = hashToHex(block["merkleroot"])
     nonce = calcLittleEndian(block["nonce"])
@@ -30,17 +28,22 @@ def concatHash():
 
     return unhexlify(concatHex)
 
-# algo from wiki
+# from wiki
 # https://en.bitcoin.it/wiki/Block_hashing_algorithm
-def validateHash():
-    header_bin = concatHash()
+def validateHash(block):
+    header_bin = concatHash(block)
     hash = hashlib.sha256(hashlib.sha256(header_bin).digest()).digest()
     hexlify(hash).decode("utf-8")
     blockhash = hexlify(hash[::-1]).decode("utf-8")
-    validationRes = "- verified" if blockhash == block["hash"] else "- not verified"
+    validationRes = "- hash calculated correctly" if blockhash == block["hash"] else "- hash calculated incorrectly"
     print("Final hash:", blockhash, validationRes)
 
 def main():
-    validateHash()
-
+    hashPattern = "[0-9a-f]{64}"
+    if(re.match(hashPattern,sys.argv[1])):
+        block = p.getblock(sys.argv[1])
+        validateHash(block)
+    else:
+        print("Wrong hash format")
+        sys.exit()
 main()
