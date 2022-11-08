@@ -6,7 +6,6 @@ import hashlib, struct, sys, re
 
 p = RawProxy()
 
-
 def calcLittleEndian(num):
     return hexlify(struct.Struct('<L').pack(num))
 
@@ -35,8 +34,8 @@ def validateHash(block):
     hash = hashlib.sha256(hashlib.sha256(header_bin).digest()).digest()
     hexlify(hash).decode("utf-8")
     blockhash = hexlify(hash[::-1]).decode("utf-8")
-    validationRes = "- hash calculated correctly" if blockhash == block["hash"] else "- hash calculated incorrectly"
-    print("Final hash:", blockhash, validationRes)
+    validationRes = "correctly" if blockhash == block["hash"] else "incorrectly"
+    print("Final hash:", blockhash, "is calculated", validationRes)
 
 def main():
     hashPattern = "[0-9a-f]{64}"
